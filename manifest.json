@@ -1,0 +1,16 @@
+{
+    "id": "QUICK_START",
+    "name": "Color Blender",
+    "host": {
+        "app": "XD",
+        "minVersion": "13.0.0"
+    },
+    "version": "1.0.0",
+    "uiEntryPoints": [
+        {
+            "type": "menu",
+            "label": "Blend Colors",
+            "commandId": "blendCommand"
+        }
+    ]
+}

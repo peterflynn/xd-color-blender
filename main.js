@@ -70,7 +70,7 @@ function showOnboarding() {
             <hr>
             <ul>
                 <li>• Select two items to create a series of clones with colors blended between them, or</li>
-                <li>• Select more items to blend colors between the existing items</li>
+                <li>• Select more items to apply the blend to existing objects</li>
             </ul>
             <footer>
                 <button id="ok" type="submit" uxp-variant="cta">OK</button>

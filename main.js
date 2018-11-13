@@ -1,12 +1,17 @@
 const {Rectangle, Color} = require("scenegraph"); 
 const commands = require("commands");
 
+const DIALOG_CANCELED = "reasonCanceled";
+
+
 function menuHandler(selection) {
     if (selection.items.length < 2) {
         return showOnboarding();
     } else if (selection.items.length === 2) {
         return showCloneSettings().then(function (nCopies) {
-            cloneAndBlend(selection, nCopies);
+            if (nCopies) {
+                cloneAndBlend(selection, nCopies);
+            } // else dialog was canceled or input wasn't a number
         });
     } else {
         blendColors(selection);
@@ -61,7 +66,7 @@ function showOnboarding() {
     var dialog = document.createElement("dialog");
     dialog.innerHTML = `
         <form method="dialog">
-            <h1>Blender</h1>
+            <h1>Color Blender</h1>
             <hr>
             <ul>
                 <li>• Select two items to create a series of clones with colors blended between them, or</li>
@@ -74,13 +79,48 @@ function showOnboarding() {
     document.appendChild(dialog);
 
     return dialog.showModal().then(function () {
-        console.log("closed!");
         dialog.remove();
     });
 }
 
 function showCloneSettings() {
-    return Promise.resolve(4);
+    // TODO: remember last-used numSteps value
+    var dialog = document.createElement("dialog");
+    dialog.innerHTML = `
+        <style>
+        .row {
+            display: flex;
+            align-items: center;
+        }
+        </style>
+        <form method="dialog">
+            <h1>Color Blender</h1>
+            <hr>
+            <div class="row">
+                <label>Number of steps:</label>
+                <input type="text" uxp-quiet="true" id="numSteps" value="3" />
+            </div>
+            <footer>
+                <button id="cancel" type="reset" uxp-variant="primary">Cancel</button>
+                <button id="ok" type="submit" uxp-variant="cta">OK</button>
+            </footer>
+        </form>`;
+    document.appendChild(dialog);
+
+    // Ok button & Enter key automatically 'submit' the form
+    // Esc key automatically cancels
+    // Cancel button has no default behavior
+    document.getElementById("cancel").onclick = () => dialog.close(DIALOG_CANCELED);
+
+    return dialog.showModal().then(function (reason) {
+        dialog.remove();
+
+        if (reason === DIALOG_CANCELED) {
+            return null;
+        } else {
+            return parseInt(dialog.querySelector("#numSteps").value);
+        }
+    });
 }
 
 module.exports = {

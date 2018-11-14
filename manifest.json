@@ -4,6 +4,9 @@
     "version": "1.1.0",
 
     "description": "Blend fill colors across a set of selected objects. Can also auto-create the intermediate objects by cloning if you only have two objects selected.\n\nThe first version of this plugin was created live in just 40 minutes: https://www.behance.net/live/videos/1713. This plugin is open source and less than 200 lines of code!",
+    "icons": [
+        { "width": 96, "height": 96, "path": "icon@2x.png" }
+    ],
 
     "host": {
         "app": "XD",

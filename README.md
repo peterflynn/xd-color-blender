@@ -3,6 +3,8 @@
 * **Select two items** to create a series of clones with colors blended between them
 * **Select more items** to apply the blend to existing objects - blending between the first & last item's colors (ignoring the rest)
 
+The order of objects in the blend is determined by their z order.
+
 The first version of this plugin was [created from scratch live on Behance](https://www.behance.net/live/videos/1713) in just 40 minutes!
 
 ## How to install this plugin

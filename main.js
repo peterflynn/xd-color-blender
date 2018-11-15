@@ -27,13 +27,62 @@ function blend(color1, color2, percent) {
     });
 }
 
-function blendColors(selection) {
-    var color1 = selection.items[0].fill;
-    var color2 = selection.items[selection.items.length - 1].fill;
+function sortSiblings(items) {
+    var parent = items[0].parent;
+    parent.children.forEach((node, i) => {
+        node._zIndex = i;
+    });
+    items.sort((a, b) => {
+        return a._zIndex - b._zIndex;
+    });
+    return items;
+}
 
-    for (var i = 1; i < selection.items.length - 1; i++) {
-        var percent = i / (selection.items.length - 1);
-        selection.items[i].fill = blend(color1, color2, percent);
+function sortByZ(selection) {
+    if (selection.editContext.parent) {
+        // Edit context is a container node, so all nodes have that container as their parent
+        return sortSiblings(selection.items);
+    } else {
+        // Root edit context: selection may be spread across multiple artboards and the pasteboard
+        // First, bucket selection by parent
+        var selectionByParent = new Map();
+        selection.items.forEach(node => {
+            if (!selectionByParent.has(node.parent)) {
+                selectionByParent.set(node.parent, []);
+            }
+            selectionByParent.get(node.parent).push(node);
+        });
+
+        // Sort the set of siblings in each bucket
+        var sortedRanges = [];
+        selectionByParent.forEach((nodes, parent) => {
+            var range = sortSiblings(nodes);
+            range.parent = parent;
+            sortedRanges.push(range);
+        });
+
+        // Sort the buckets themselves by parent z-order, then merge together the pre-sorted buckets in order
+        selection.editContext.children.forEach((node, i) => {
+            node._zIndex = i;
+        });
+        selection.editContext._zIndex = -1;
+        sortedRanges.sort((a, b) => {
+            return a.parent._zIndex - b.parent._zIndex;
+        });
+        return [].concat(...sortedRanges);
+    }
+}
+
+function blendColors(selection) {
+    // Sort items by Z order for predictability, since marquee selection order depends on which nodes the marquee drag touched first, which is pretty arbitrary
+    var items = sortByZ(selection);
+
+    var color1 = items[0].fill;
+    var color2 = items[items.length - 1].fill;
+
+    for (var i = 1; i < items.length - 1; i++) {
+        var percent = i / (items.length - 1);
+        items[i].fill = blend(color1, color2, percent);
     }
 }
 

@@ -27,9 +27,8 @@ function blend(color1, color2, percent) {
     });
 }
 
-function sortSiblings(items) {
-    var parent = items[0].parent;
-    parent.children.forEach((node, i) => {
+function sortSiblings(items, presumedParent) {
+    presumedParent.children.forEach((node, i) => {
         node._zIndex = i;
     });
     items.sort((a, b) => {
@@ -41,7 +40,8 @@ function sortSiblings(items) {
 function sortByZ(selection) {
     if (selection.editContext.parent) {
         // Edit context is a container node, so all nodes have that container as their parent
-        return sortSiblings(selection.items);
+        return sortSiblings(selection.items, items[0].parent);
+
     } else {
         // Root edit context: selection may be spread across multiple artboards and the pasteboard
         // First, bucket selection by parent
@@ -53,23 +53,18 @@ function sortByZ(selection) {
             selectionByParent.get(node.parent).push(node);
         });
 
-        // Sort the set of siblings in each bucket
-        var sortedRanges = [];
-        selectionByParent.forEach((nodes, parent) => {
-            var range = sortSiblings(nodes);
-            range.parent = parent;
-            sortedRanges.push(range);
+        // Sort the buckets themselves by parent z-order
+        selection.editContext._zIndex = -1;  // treat pasteboard content as lowest in z order, below all artboards
+        var sortedParents = sortSiblings(Array.from(selectionByParent.keys()), selection.editContext);
+
+        // Sort the set of siblings in each bucket & join together
+        var result = [];
+        sortedParents.forEach(parent => {
+            var itemsInParent = selectionByParent.get(parent);
+            result = result.concat(sortSiblings(itemsInParent, parent));
         });
 
-        // Sort the buckets themselves by parent z-order, then merge together the pre-sorted buckets in order
-        selection.editContext.children.forEach((node, i) => {
-            node._zIndex = i;
-        });
-        selection.editContext._zIndex = -1;
-        sortedRanges.sort((a, b) => {
-            return a.parent._zIndex - b.parent._zIndex;
-        });
-        return [].concat(...sortedRanges);
+        return result;
     }
 }
 

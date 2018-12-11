@@ -30,13 +30,17 @@ var lastNumSteps = 3;
 function menuHandler(selection) {
     if (selection.items.length < 2) {
         return showOnboarding();
+
     } else if (selection.items.length === 2) {
+        if (!checkFillType(selection.items[0].fill, selection.items[1].fill)) { return; }
+
         return showCloneSettings().then(function (nCopies) {
             if (nCopies) {
                 lastNumSteps = nCopies;
                 cloneAndBlend(selection, nCopies);
             } // else dialog was canceled or input wasn't a number
         });
+
     } else {
         blendColors(selection);
     }
@@ -98,6 +102,7 @@ function blendColors(selection) {
 
     var color1 = items[0].fill;
     var color2 = items[items.length - 1].fill;
+    if (!checkFillType(color1, color2)) { return; }
 
     for (var i = 1; i < items.length - 1; i++) {
         var percent = i / (items.length - 1);
@@ -113,6 +118,7 @@ function cloneAndBlend(selection, nCopies) {
 
     var color1 = selection.items[0].fill;
     var color2 = selection.items[selection.items.length - 1].fill;
+    // (fill type is checked before clone settings dialog)
 
     var clones = [];
 
@@ -149,6 +155,28 @@ function showOnboarding() {
     return dialog.showModal().then(function () {
         dialog.remove();
     });
+}
+
+function checkFillType(color1, color2) {
+    if (!(color1 instanceof Color) || !(color2 instanceof Color)) {
+        var dialog = document.createElement("dialog");
+        dialog.innerHTML = `
+            <form method="dialog">
+                <h1>Color Blender</h1>
+                <hr>
+                <div>Start and end must both have a solid-color fill.</div>
+                <footer>
+                    <button id="ok" type="submit" uxp-variant="cta">OK</button>
+                </footer>
+            </form>`;
+        document.appendChild(dialog);
+
+        dialog.showModal().then(function () {
+            dialog.remove();
+        });
+        return false;
+    }
+    return true;
 }
 
 function showCloneSettings() {

@@ -64,7 +64,7 @@ function sortSiblings(items, presumedParent) {
 function sortByZ(selection) {
     if (selection.editContext.parent) {
         // Edit context is a container node, so all nodes have that container as their parent
-        return sortSiblings(selection.items, items[0].parent);
+        return sortSiblings(selection.items, selection.items[0].parent);
 
     } else {
         // Root edit context: selection may be spread across multiple artboards and the pasteboard
